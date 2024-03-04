@@ -1,0 +1,25 @@
+{% extends "network/layout.html" %}
+
+
+{% block body %}
+    {% if user.is_authenticated %}
+        <div id="new-post">
+            <form id="create-new-post" name="create-new-post" method="post" action="{% url 'index' %}" enctype="multipart/form-data">
+                {% csrf_token %}
+                <textarea id="post-content" name="post-content" placeholder="Place your thoughts here..." oninput='this.style.height = "";this.style.height = this.scrollHeight + "px"'></textarea>
+                <input type="submit" id="submit-new-post" name="submit-new-post" value="Post" class="btn btn-primary">
+            </form>
+        </div>
+    {% endif %}
+    <h2>All Posts</h2>
+    <div id="twitts">
+        {% for post in posts %}
+            <div class="twitt">
+                <div class="user">{{ post.user }}</div>
+                <div class="body">{{ post.body }}</div>
+                <div class="timestamp">{{ post.timestamp }}</div>
+                <div class="likes">Likes: {{ post.likes_count }}</div>
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}
