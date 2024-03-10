@@ -1,3 +1,5 @@
+import json
+from django.core.paginator import Paginator
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
@@ -9,24 +11,85 @@ from .models import User, Post
 
 
 def index(request):
-    print(request.POST)
-    print(request.POST.get("post-content"))
     if request.method == "POST":
+        print(request.POST)
         if "submit-new-post" in request.POST:
             new_post = create_new_post(request)
-            return JsonResponse({
-                "message": "Post was successfully published",
-                "twitt": new_post.serialize(),
-                }, status=201)
-        elif "like-post" in request.POST:
-            pass
-        else:
-            return JsonResponse({"error": "Something wrong..."}, status=400)
+            new_post.save()
+            return HttpResponseRedirect(reverse("index"))
+        
+    elif request.method == "PUT":
+        return save_like(request)
     else:
-        posts = Post.objects.all().order_by("-timestamp")
+        posts_q = Post.objects.all().order_by("-timestamp")
+        paginator = Paginator(posts_q, 10)
+        page_number = request.GET.get("page")
+        posts = paginator.get_page(page_number)
         return render(request, "network/index.html", {
             "posts": posts,
         })
+
+
+def edit_post(request):
+    if request.method != "PUT":
+        return JsonResponse({"error": "POST request required."}, status=400)
+    data = json.loads(request.body)
+    print(data, id)
+    print(id)
+    return JsonResponse({"message": "Email sent successfully."}, status=204)
+        
+        
+def following(request):
+    if request.method == "PUT":
+        return save_like(request)
+    else:
+        followings = User.objects.all().filter(follows=request.user)
+        posts_q = Post.objects.filter(user__in=followings).order_by("-timestamp")
+        paginator = Paginator(posts_q, 10)
+        page_number = request.GET.get("page")
+        posts = paginator.get_page(page_number)
+        return render(request, "network/following.html", {
+            "posts": posts,
+        })
+
+
+def profile(request, profile):
+    follower = User.objects.get(username=profile)
+    following = User.objects.all().filter(follows=request.user)
+    if request.method == "POST":
+        data = json.loads(request.body)
+        follows = data.get("follower")
+        if follows and request.user not in follower.follows.all():
+            follower.follows.add(request.user)
+            return JsonResponse({"message": f"You have followed to {profile}"}, status=201)
+        elif not follows and request.user in follower.follows.all():
+            follower.follows.remove(request.user)
+            return JsonResponse({"message": f"You have unfollowed from {profile}"}, status=201)
+    elif request.method == "PUT":
+        return save_like(request)
+    else:
+        posts_q = Post.objects.all().order_by("-timestamp").filter(user=User.objects.get(username=profile))
+        paginator = Paginator(posts_q, 10)
+        page_number = request.GET.get("page")
+        posts = paginator.get_page(page_number)
+        return render(request, "network/profile.html", {
+            "posts": posts,
+            "profile": profile,
+            "followers": follower.follows.all(),
+            "followings": following,
+        })
+
+
+def save_like(request):
+    data = json.loads(request.body)
+    post_id = data.get('post_id')
+    liked = data.get('liked')
+    post = Post.objects.get(pk=post_id)
+    if liked == 'false':
+        post.likes_count.remove(request.user)
+    elif liked == 'true':
+        post.likes_count.add(request.user)
+    return HttpResponse(status=204)
 
 
 def create_new_post(request):
@@ -35,6 +98,7 @@ def create_new_post(request):
         body=request.POST["post-content"]
     )
     return new_post
+
 
 def login_view(request):
     if request.method == "POST":

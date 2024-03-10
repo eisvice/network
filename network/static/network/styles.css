@@ -34,3 +34,44 @@
 }
 
 
+.like-post {
+    background: none;
+    border: none;
+    padding: 0;
+}
+
+
+.like-post:focus {
+    outline: none;
+}
+
+
+.profile-header {
+    display:inline-flex;
+    margin-left: 20px;
+    padding: 10px;
+    padding-bottom: 0;
+    margin-bottom: 0;
+    vertical-align:bottom;
+}
+
+
+.profile-header input[type="submit"] {
+    margin-left: 15px;
+}
+
+
+.followers-info table {
+    color: #969393;
+    margin-left: 35px;
+    margin-top: 0;
+    margin-bottom: 20px;
+}
+
+
+.empty-div {
+    color: #969393;
+    font-size: x-large;
+    text-align: center;
+    margin: 50px;
+}

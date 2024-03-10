@@ -2,29 +2,22 @@
 
 
 {% block body %}
-    {% if user.is_authenticated %}
-        <div id="new-post">
-            <form id="create-new-post" name="create-new-post" method="post" action="{% url 'index' %}" enctype="multipart/form-data">
-                {% csrf_token %}
-                <textarea id="post-content" name="post-content" placeholder="Place your thoughts here..." oninput='this.style.height = "";this.style.height = this.scrollHeight + "px"'></textarea>
-                <input type="submit" id="submit-new-post" name="submit-new-post" value="Post" class="btn btn-primary">
-            </form>
-        </div>
-    {% endif %}
-    <h2>All Posts</h2>
+    <div class="profile-header">
+        <h2>People you follow</h2>
+    </div>
     <div id="twitts">
         {% for post in posts %}
             <div class="twitt">
                 <div class="user"><a href="{% url 'profile' post.user%}">{{ post.user }}</a></div>
                 <div class="body">{{ post.body }}</div>
                 <div class="timestamp">{{ post.timestamp }}</div>
-                <form method="put" name="post-like" action="{% url 'index' %}">
+                <form method="put" name="post-like" action="{% url 'profile' post.user %}">
                     <div class="likes">
                         {% if user.is_authenticated %}
                             {% if user in post.likes_count.all %}
-                                <button type="submit" name="like-post" class="like-post" data-post-id="{{ post.id }}" data-liked="true">❤️</button>
+                                <button type="submit" class="like-post" data-post-id="{{ post.id }}" data-liked="true">❤️</button>
                             {% else %}
-                                <button type="submit" name="like-post" class="like-post" data-post-id="{{ post.id }}" data-liked="false">🤍</button>
+                                <button type="submit" class="like-post" data-post-id="{{ post.id }}" data-liked="false">🤍</button>
                             {% endif %}
                         {% else %}
                             <span>❤️</span>
@@ -32,13 +25,10 @@
                         <span id="likes-count-{{ post.id }}" class="counter">{{ post.likes_count.all.count }}</span>
                     </div>
                 </form>
-                {% if user == post.user %}
-                    <button class="btn btn-primary edit-post" data-post-id="{{ post.id }}">Edit</button>
-                {% endif %}
             </div>
         {% empty %}
             <div class="empty-div">
-                Nothing to see here:|
+                Nothing to see here :|
             </div>
         {% endfor %}
     </div>
