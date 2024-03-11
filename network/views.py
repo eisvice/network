@@ -6,18 +6,26 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
+from django.views.decorators.csrf import csrf_exempt
 
 from .models import User, Post
 
 
 def index(request):
     if request.method == "POST":
-        print(request.POST)
         if "submit-new-post" in request.POST:
             new_post = create_new_post(request)
             new_post.save()
             return HttpResponseRedirect(reverse("index"))
-        
+        elif "edit-post" in request.POST:
+            data = json.loads(request.POST["document"])
+            existed_posts = [i.id for i in Post.objects.filter(user=request.user)]
+            if data["author"] == request.user.username and int(data["id"]) in existed_posts and data["body"] != Post.objects.get(pk=int(data["id"])).body:
+                existed_post = Post.objects.get(pk=int(data["id"]))
+                existed_post.body = data["body"]
+                existed_post.save(update_fields=["body"])
+                return JsonResponse({"message": "Post was successfully updated!"}, status=201)
+            return JsonResponse({"message": "Canceled"}, status=201)
     elif request.method == "PUT":
         return save_like(request)
     else:
@@ -28,15 +36,6 @@ def index(request):
         return render(request, "network/index.html", {
             "posts": posts,
         })
-
-
-def edit_post(request):
-    if request.method != "PUT":
-        return JsonResponse({"error": "POST request required."}, status=400)
-    data = json.loads(request.body)
-    print(data, id)
-    print(id)
-    return JsonResponse({"message": "Email sent successfully."}, status=204)
         
         
 def following(request):
@@ -57,14 +56,24 @@ def profile(request, profile):
     follower = User.objects.get(username=profile)
     following = User.objects.all().filter(follows=request.user)
     if request.method == "POST":
-        data = json.loads(request.body)
-        follows = data.get("follower")
-        if follows and request.user not in follower.follows.all():
-            follower.follows.add(request.user)
-            return JsonResponse({"message": f"You have followed to {profile}"}, status=201)
-        elif not follows and request.user in follower.follows.all():
-            follower.follows.remove(request.user)
-            return JsonResponse({"message": f"You have unfollowed from {profile}"}, status=201)
+        if "edit-post" in request.POST:
+            data = json.loads(request.POST["document"])
+            existed_posts = [i.id for i in Post.objects.filter(user=request.user)]
+            if data["author"] == request.user.username and int(data["id"]) in existed_posts and data["body"] != Post.objects.get(pk=int(data["id"])).body:
+                existed_post = Post.objects.get(pk=int(data["id"]))
+                existed_post.body = data["body"]
+                existed_post.save(update_fields=["body"])
+                return JsonResponse({"message": "Post was successfully updated!"}, status=201)
+            return JsonResponse({"message": "Canceled"}, status=201)
+        else:
+            data = json.loads(request.body)
+            follows = data.get("follower")
+            if follows and request.user not in follower.follows.all():
+                follower.follows.add(request.user)
+                return JsonResponse({"message": f"You have followed to {profile}"}, status=201)
+            elif not follows and request.user in follower.follows.all():
+                follower.follows.remove(request.user)
+                return JsonResponse({"message": f"You have unfollowed from {profile}"}, status=201)
     elif request.method == "PUT":
         return save_like(request)
     else:

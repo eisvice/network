@@ -2,14 +2,14 @@
 
 
 {% block body %}
-    <div class="profile-header">
-        <h2>People you follow</h2>
-    </div>
     <div id="twitts">
+        <div class="profile-header">
+            <h2>People you follow</h2>
+        </div>
         {% for post in posts %}
             <div class="twitt">
                 <div class="user"><a href="{% url 'profile' post.user%}">{{ post.user }}</a></div>
-                <div class="body">{{ post.body }}</div>
+                <div class="body-post">{{ post.body }}</div>
                 <div class="timestamp">{{ post.timestamp }}</div>
                 <form method="put" name="post-like" action="{% url 'profile' post.user %}">
                     <div class="likes">

@@ -72,30 +72,49 @@ document.addEventListener('DOMContentLoaded', function() {
 
     document.querySelectorAll('.edit-post').forEach(button => {
         button.addEventListener('click', function() {
-            // event.preventDefault();
-            console.log('you clicked');
             const postID = this.dataset.postId;
             const twitt = button.parentElement;
-            console.log(postID);
-            console.log(button.parentElement.querySelector('.body'));
-            const body = button.parentElement.querySelector('.body');
+            const body = button.parentElement.querySelector('.body-post');
             const bodyEdit = document.createElement('textarea');
             bodyEdit.innerHTML = body.innerHTML;
+            bodyEdit.className = 'edit-content';
+            bodyEdit.addEventListener('input', function() {
+                this.style.height = "";
+                this.style.height = this.scrollHeight + "px";
+            })
+
+            console.log(twitt.offsetHeight);
+            const initHeight = twitt.offsetHeight;
             body.replaceWith(bodyEdit);
             button.style.display = 'none';
-            const saveBtn = document.createElement('button');
+            const saveBtn = document.createElement('input');
             const cancelBtn = document.createElement('button');
+            saveBtn.type = 'submit';
             saveBtn.className = 'btn btn-primary save-button';
-            saveBtn.innerHTML = 'Save';
+            saveBtn.name = 'edit-post';
+            saveBtn.value = 'Save';
             cancelBtn.className = 'btn btn-primary cancel-button';
             cancelBtn.innerHTML = 'Cancel';
+            
+            const form = document.createElement('FORM');
+            form.name = 'post-edit-form';
+            form.method = 'POST';
+            form.action = 'http://127.0.0.1:8000';
+            form.appendChild(saveBtn);
 
-            twitt.append(saveBtn, cancelBtn);
+            
+            const buttonDiv = document.createElement('div');
+            buttonDiv.className = 'button-div';
+            buttonDiv.append(form, cancelBtn)
+
+            twitt.append(buttonDiv);
+
             cancelBtn.addEventListener('click', function() {
-                saveBtn.style.display = 'none';
-                cancelBtn.style.display = 'none';
+                console.log(twitt.offsetHeight);
+                buttonDiv.remove();
                 button.style.display = 'block';
                 bodyEdit.replaceWith(body);
+
             });
             saveBtn.addEventListener('click', function(event) {
                 event.preventDefault();
@@ -103,19 +122,24 @@ document.addEventListener('DOMContentLoaded', function() {
                 saveBtn.style.display = 'none';
                 cancelBtn.style.display = 'none';
                 button.style.display = 'block';
-                console.log(bodyEdit.value);
-                console.log(body.innerHTML);
                 bodyEdit.replaceWith(body);
-                fetch('' ,{
+
+                const formData = new FormData(form);
+                formData.append('edit-post', saveBtn.value);
+                formData.append('document', JSON.stringify({id: postID, author: twitt.querySelector('.user').querySelector('a').innerHTML, body: body.innerHTML}));
+
+                buttonDiv.remove();
+
+                fetch(currentURL ,{
                     method: 'POST',
                     headers: {
                         'X-CSRFToken': getCookie('csrftoken')
                     },
-                    body: JSON.stringify({
-                        post_id: postID,
-                        author: twitt.user,
-                        body: body
-                    })
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(message => {
+                    console.log(message);
                 })
                 .catch(error => {
                     console.error('Error:', error);

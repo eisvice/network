@@ -3,6 +3,7 @@
 
 {% block body %}
     {% if user.is_authenticated %}
+    <div class="new-post-div">
         <div id="new-post">
             <form id="create-new-post" name="create-new-post" method="post" action="{% url 'index' %}" enctype="multipart/form-data">
                 {% csrf_token %}
@@ -10,13 +11,16 @@
                 <input type="submit" id="submit-new-post" name="submit-new-post" value="Post" class="btn btn-primary">
             </form>
         </div>
+    </div>
     {% endif %}
-    <h2>All Posts</h2>
     <div id="twitts">
+        <div class="profile-header">
+            <h2>All Posts</h2>
+        </div>
         {% for post in posts %}
             <div class="twitt">
                 <div class="user"><a href="{% url 'profile' post.user%}">{{ post.user }}</a></div>
-                <div class="body">{{ post.body }}</div>
+                <div class="body-post">{{ post.body }}</div>
                 <div class="timestamp">{{ post.timestamp }}</div>
                 <form method="put" name="post-like" action="{% url 'index' %}">
                     <div class="likes">

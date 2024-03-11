@@ -2,34 +2,36 @@
 
 
 {% block body %}
-    <div class="profile-header">
-        <h2>Posts of {{ profile }}</h2>
-        {% if user.is_authenticated and profile != user.username %}
-            <form method="post">
-                {% csrf_token %}
-                {% if user in followers %}
-                    <input type="submit" id="follow" class="btn btn-primary" value="Unfollow">
-                {% else %}
-                    <input type="submit" id="follow" class="btn btn-primary" value="Follow">
-                {% endif %}
-            </form>
-        {% endif %}
-    </div>
-    <div class="followers-info">
-        <table>
-            <tr>
-                <td>Followers:</td>
-                <td id="followers-count">{{ followers.count }}</td>
-                <td>Followings:</td>
-                <td id="followings-count">{{ followings.count }}</td>
-            </tr>
-        </table>
-    </div>
     <div id="twitts">
+        <div class="profile-header">
+            <div class="header-h2">
+                <h2>Posts of {{ profile }}</h2>
+                {% if user.is_authenticated and profile != user.username %}
+                    <form method="post">
+                        {% csrf_token %}
+                        {% if user in followers %}
+                            <input type="submit" id="follow" class="btn btn-primary" value="Unfollow">
+                        {% else %}
+                            <input type="submit" id="follow" class="btn btn-primary" value="Follow">
+                        {% endif %}
+                    </form>
+                {% endif %}
+            </div>
+            <div class="followers-info">
+                <table>
+                    <tr>
+                        <td>Followers:</td>
+                        <td id="followers-count">{{ followers.count }}</td>
+                        <td>Followings:</td>
+                        <td id="followings-count">{{ followings.count }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
         {% for post in posts %}
             <div class="twitt">
                 <div class="user"><a href="{% url 'profile' post.user%}">{{ post.user }}</a></div>
-                <div class="body">{{ post.body }}</div>
+                <div class="body-post">{{ post.body }}</div>
                 <div class="timestamp">{{ post.timestamp }}</div>
                 <form method="put" name="post-like" action="{% url 'profile' post.user %}">
                     <div class="likes">
@@ -45,6 +47,9 @@
                         <span id="likes-count-{{ post.id }}" class="counter">{{ post.likes_count.all.count }}</span>
                     </div>
                 </form>
+                {% if user == post.user %}
+                    <button class="btn btn-primary edit-post" data-post-id="{{ post.id }}">Edit</button>
+                {% endif %}
             </div>
         {% empty %}
             <div class="empty-div">
